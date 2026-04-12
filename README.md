@@ -6,11 +6,46 @@ Firmware ZMK pour **Le Spot 0x01** — un tapis de sol interactif équipé d'une
 
 Ce dépôt contient un shield ZMK personnalisé (`tapis`) qui transforme la carte NRF52840 Pro Micro en périphérique HID Bluetooth **3 touches HID + 1 touche Bluetooth**. Le firmware est compilé automatiquement en `.uf2` via GitHub Actions.
 
+## Validations du 2026-04-12
+
+### Compilation
+- Le firmware compile correctement via GitHub Actions (pipeline ZMK v0.3).
+- L'artefact `.uf2` est disponible dans l'onglet **Actions** après chaque push sur `main`.
+
+### Matériel utilisé
+- Clone **Nice!Nano v2 AliExpress** (vendu sous le nom "Pro Micro NRF52840").
+- Compatible avec le target `nice_nano_v2` dans ZMK — aucun ajustement nécessaire.
+
+### Flash
+- Passer en mode bootloader : double-appui sur Reset → le volume **NICENANO** apparaît.
+- Glisser-déposer le fichier `.uf2` sur le volume → redémarrage automatique.
+
+### Pins validées physiquement
+
+| Sérigraphie carte | Pin Zephyr | Rôle validé |
+|-------------------|------------|-------------|
+| `011`             | `gpio0 11` | Touche A — contact détecté |
+| `013`             | `gpio0 13` | Touche B — contact détecté |
+
+Les pins ont été testées en court-circuitant GND avec le pad correspondant : la frappe est bien reçue côté hôte.
+
+### Bluetooth
+- Connexion validée sur **macOS** sous le nom **TapisDuel**.
+- Appairage automatique au premier couplage, mémorisé en flash.
+
+---
+
+## Prochaine étape
+
+Souder les capteurs de pression du tapis sur les pins `011` (gpio0 11) et `013` (gpio0 13), puis tester la détection de frappe avec le **Raspberry Pi CM4**.
+
+---
+
 ## Matériel
 
 | Composant | Détail |
 |-----------|--------|
-| Carte | NRF52840 Pro Micro (compatible nice!nano) |
+| Carte | Clone Nice!Nano v2 AliExpress (Pro Micro NRF52840) |
 | SoC | Nordic nRF52840 |
 | Connectivité | Bluetooth LE (BLE HID) |
 | Format firmware | UF2 (chargement via bootloader USB) |
@@ -30,9 +65,10 @@ Toutes les touches sont câblées en **actif bas** avec résistance de pull-up a
 
 ## Bluetooth
 
-- **Nom de l'appareil** : `Le Spot 0x01`
+- **Nom de l'appareil** : `TapisDuel` (configuré dans `tapis.conf`)
 - **Profil** : HID over GATT (clavier/touche générique)
 - **Couplage** : premier appairage automatique, mémorisé en flash
+- **Validé sur** : macOS
 
 ## Structure du dépôt
 
