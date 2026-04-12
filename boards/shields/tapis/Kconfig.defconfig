@@ -1,0 +1,6 @@
+if SHIELD_TAPIS
+
+config ZMK_KEYBOARD_NAME
+    default "TapisDuel"
+
+endif
