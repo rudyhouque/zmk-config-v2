@@ -1,0 +1,7 @@
+file_format: "1"
+id: tapis
+name: Le Spot 0x01
+type: shield
+url: ""
+requires:
+  - pro_micro
