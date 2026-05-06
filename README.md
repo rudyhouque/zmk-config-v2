@@ -6,38 +6,45 @@ Firmware ZMK pour **Le Spot 0x01** — un tapis de sol interactif équipé d'une
 
 Ce dépôt contient un shield ZMK personnalisé (`tapis`) qui transforme la carte NRF52840 Pro Micro en périphérique HID Bluetooth **3 touches HID + 1 touche Bluetooth**. Le firmware est compilé automatiquement en `.uf2` via GitHub Actions.
 
-## Validations du 2026-04-12
+## Validations du 2026-05-06
 
 ### Compilation
 - Le firmware compile correctement via GitHub Actions (pipeline ZMK v0.3).
 - L'artefact `.uf2` est disponible dans l'onglet **Actions** après chaque push sur `main`.
 
 ### Matériel utilisé
-- Clone **Nice!Nano v2 AliExpress** (vendu sous le nom "Pro Micro NRF52840").
+- Clone **Nice!Nano v2 AliExpress** (vendu sous le nom "SuperMini NRF52840" ou "Pro Micro NRF52840").
 - Compatible avec le target `nice_nano_v2` dans ZMK — aucun ajustement nécessaire.
 
 ### Flash
-- Passer en mode bootloader : double-appui sur Reset → le volume **NICENANO** apparaît.
+- Passer en mode bootloader : double-appui rapide sur Reset → le volume **NICENANO** apparaît dans le Finder.
 - Glisser-déposer le fichier `.uf2` sur le volume → redémarrage automatique.
 
-### Pins validées physiquement
+### Pins validées physiquement (2026-05-06)
 
 | Sérigraphie carte | Pin Zephyr | Rôle validé |
 |-------------------|------------|-------------|
-| `011`             | `gpio0 11` | Touche A — contact détecté |
-| `013`             | `gpio0 13` | Touche B — contact détecté |
+| P0.11 | `gpio0 11` | Touche A — produit 'a' sur Mac AZERTY |
+| P1.00 | `gpio1 0`  | Touche B — produit 'b' |
+| P0.06 | `gpio0 6`  | Touche C — produit 'c' |
+| P0.08 | `gpio0 8`  | Mode appairage BT (BT_CLR) |
 
-Les pins ont été testées en court-circuitant GND avec le pad correspondant : la frappe est bien reçue côté hôte.
+> **Important — P0.13 inutilisable comme GPIO clavier** : sur le firmware `nice_nano_v2`, la pin P0.13 est réservée en interne pour le contrôle d'alimentation externe (`EXT_POWER`). Elle ne peut pas être utilisée comme entrée clavier. Utiliser P1.00 (D6) à la place pour la touche B.
 
 ### Bluetooth
 - Connexion validée sur **macOS** sous le nom **TapisDuel**.
-- Appairage automatique au premier couplage, mémorisé en flash.
+- Reconnexion automatique à l'appareil déjà couplé au démarrage.
+- **Mode appairage** : court-circuiter GND et P0.08 → efface le bond BT en cours → la carte devient découvrable pour un nouvel appareil.
+
+### AZERTY
+- Le keymap utilise `&kp Q` (et non `&kp A`) pour produire la lettre **a** sur un Mac configuré en AZERTY.
+- ZMK envoie des scancodes HID basés sur les positions QWERTY. Le Mac AZERTY interprète la position Q (QWERTY) comme la touche A (AZERTY). `&kp B` et `&kp C` sont identiques dans les deux layouts.
 
 ---
 
 ## Prochaine étape
 
-Souder les capteurs de pression du tapis sur les pins `011` (gpio0 11) et `013` (gpio0 13), puis tester la détection de frappe avec le **Raspberry Pi CM4**.
+Souder les capteurs de pression du tapis sur les pins P0.11 (A), P1.00 (B) et P0.06 (C), puis tester la détection de frappe avec le **Raspberry Pi CM4**.
 
 ---
 
@@ -45,7 +52,7 @@ Souder les capteurs de pression du tapis sur les pins `011` (gpio0 11) et `013` 
 
 | Composant | Détail |
 |-----------|--------|
-| Carte | Clone Nice!Nano v2 AliExpress (Pro Micro NRF52840) |
+| Carte | Clone Nice!Nano v2 AliExpress (SuperMini NRF52840) |
 | SoC | Nordic nRF52840 |
 | Connectivité | Bluetooth LE (BLE HID) |
 | Format firmware | UF2 (chargement via bootloader USB) |
@@ -54,14 +61,16 @@ Souder les capteurs de pression du tapis sur les pins `011` (gpio0 11) et `013` 
 
 | Touche | Pin Zephyr | GPIO physique | Action ZMK | Mode |
 |--------|------------|---------------|------------|------|
-| A | `gpio0 11` | P0.11 | `&kp A` | Actif bas, pull-up interne |
-| B | `gpio0 13` | P0.13 | `&kp B` | Actif bas, pull-up interne |
-| C | `gpio0 6`  | P0.06 | `&kp C` | Actif bas, pull-up interne |
-| BT | `gpio0 8` | P0.08 | `&bt BT_CLR` | Actif bas, pull-up interne |
+| A | `gpio0 11` | P0.11 (D7) | `&kp Q` ¹ | Actif bas, pull-up interne |
+| B | `gpio1 0`  | P1.00 (D6) | `&kp B`   | Actif bas, pull-up interne |
+| C | `gpio0 6`  | P0.06 (D1) | `&kp C`   | Actif bas, pull-up interne |
+| BT | `gpio0 8` | P0.08 (D0) | `&bt BT_CLR` | Actif bas, pull-up interne |
+
+¹ `&kp Q` produit 'a' sur Mac AZERTY (voir section AZERTY ci-dessus).
 
 Toutes les touches sont câblées en **actif bas** avec résistance de pull-up activée côté firmware (pas de résistance externe nécessaire).
 
-> **Touche BT** : appuyer sur cette touche efface le couplage Bluetooth en mémoire (`BT_CLR`) et rend l'appareil à nouveau découvrable. Utiliser le behavior ZMK `&bt BT_CLR`.
+> **Touche BT (mode appairage)** : court-circuiter GND et P0.08. Cela efface le couplage Bluetooth en mémoire (`BT_CLR`) et rend l'appareil à nouveau découvrable.
 
 ## Bluetooth
 
@@ -85,7 +94,7 @@ tapis-zmk-v2/
 ├── config/
 │   ├── west.yml                    # Manifest West — pointe vers ZMK v0.3
 │   ├── tapis.conf                  # Kconfig utilisateur : nom BT, BLE activé
-│   └── tapis.keymap                # Keymap utilisateur : kp A/B/C + bt BT_CLR
+│   └── tapis.keymap                # Keymap utilisateur : kp Q/B/C + bt BT_CLR
 ├── build.yaml                      # Matrice de build (board + shield)
 └── zephyr/
     └── module.yml                  # Déclare ce dépôt comme module Zephyr
@@ -108,10 +117,10 @@ tapis-zmk-v2/
         compatible = "zmk,kscan-gpio-direct";
         label = "KSCAN";
         input-gpios
-            = <&gpio0 11 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* Touche A */
-            , <&gpio0 13 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* Touche B */
-            , <&gpio0  6 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* Touche C */
-            , <&gpio0  8 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* Touche BT (BT_CLR) */
+            = <&gpio0 11 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* Touche A  — pin P0.11 (D7) */
+            , <&gpio1  0 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* Touche B  — pin P1.00 (D6), P0.13 est réservé EXT_POWER */
+            , <&gpio0  6 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* Touche C  — pin P0.06 (D1) */
+            , <&gpio0  8 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* BT_CLR    — pin P0.08 (D0) = mode appairage */
             ;
     };
 };
@@ -136,7 +145,7 @@ CONFIG_ZMK_BLE=y
         compatible = "zmk,keymap";
         default_layer {
             bindings = <
-                &kp A   &kp B   &kp C   &bt BT_CLR
+                &kp Q   &kp B   &kp C   &bt BT_CLR
             >;
         };
     };
@@ -166,9 +175,20 @@ Chaque push sur `main` (ou déclenchement manuel via `workflow_dispatch`) produi
 
 ## Flash du firmware
 
-1. Brancher la carte NRF52840 Pro Micro en USB.
-2. Double-appuyer sur le bouton **Reset** pour passer en mode bootloader (lecteur USB `NRF52BOOT` ou `NICENANO` apparaît).
-3. Copier le fichier `.uf2` sur le lecteur — la carte redémarre automatiquement.
+1. Brancher la carte NRF52840 en USB.
+2. Double-appuyer rapidement sur le bouton **Reset** → le volume **NICENANO** apparaît dans le Finder.
+3. Glisser-déposer le fichier `.uf2` sur le volume — la carte redémarre automatiquement.
+
+## Authentification GitHub
+
+Pour pusher depuis le terminal, utiliser le GitHub CLI :
+
+```bash
+gh auth login
+# Choisir : GitHub.com → HTTPS → Yes → Login with a web browser
+```
+
+Ensuite le `git push` fonctionne normalement (pas de mot de passe, pas de token à gérer).
 
 ## Dépendances
 
