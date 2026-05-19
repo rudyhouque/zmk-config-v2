@@ -11,6 +11,7 @@
             , <&gpio1  0 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* Touche B  — pin P1.00 (D6), P0.13 est réservé EXT_POWER */
             , <&gpio0  6 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* Touche C  — pin P0.06 (D1) */
             , <&gpio0 29 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* BT_NXT    — pin P0.29 = switch profil BT */
+            , <&gpio0 31 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* BT_CLR_ALL — pin P0.31 = reset tous les profils BT */
             ;
     };
 };
