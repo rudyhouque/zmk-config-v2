@@ -10,7 +10,7 @@
             = <&gpio0 11 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* Touche A  — pin P0.11 (D7) */
             , <&gpio1  0 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* Touche B  — pin P1.00 (D6), P0.13 est réservé EXT_POWER */
             , <&gpio0  6 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* Touche C  — pin P0.06 (D1) */
-            , <&gpio0  8 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* BT_CLR    — pin P0.08 (D0) = mode appairage */
+            , <&gpio0 29 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* BT_NXT    — pin P0.29 = switch profil BT */
             ;
     };
 };
